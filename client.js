@@ -1,177 +1,177 @@
-// Get references to all our HTML elements
+// --- CONFIG ---
+// Use your live Render server URL here
+const SERVER_URL = "wss://relay-mgcs.onrender.com";
+// --- END CONFIG ---
+
+// --- DOM Elements ---
 const joinScreen = document.getElementById('join-screen');
 const buzzerScreen = document.getElementById('buzzer-screen');
-
+const joinButton = document.getElementById('join-button');
 const roomCodeInput = document.getElementById('room-code-input');
 const nameInput = document.getElementById('name-input');
-// Re-added pfp elements
 const pfpInput = document.getElementById('pfp-input');
 const pfpPreview = document.getElementById('pfp-preview');
-
-const joinButton = document.getElementById('join-button');
 const errorMessage = document.getElementById('error-message');
-
 const buzzerButton = document.getElementById('buzzer-button');
 const playerNameDisplay = document.getElementById('player-name-display');
 
-let ws; // This will hold our WebSocket connection
-let playerName = '';
+// --- State ---
+let ws;
+let playerData = {
+    type: "join",
+    code: "",
+    name: "",
+    picture: "" // Base64 string of the image
+};
 
-// --- IMPORTANT ---
-// For local testing, use your server's local address.
-// When you deploy, change this to your Render.com URL.
-const SERVER_URL = "ws://localhost:8080"; 
+// --- Event Listeners ---
+joinButton.addEventListener('click', joinGame);
+buzzerButton.addEventListener('click', buzzIn);
 
-// --- Profile Picture Handling ---
-pfpInput.addEventListener('change', () => {
-    const file = pfpInput.files[0];
+// Handle profile picture selection
+pfpInput.addEventListener('change', (event) => {
+    const file = event.target.files[0];
     if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            pfpPreview.src = e.target.result;
-            pfpPreview.style.display = 'block'; // Make it visible
-        };
-        reader.readAsDataURL(file);
-    } else {
-        pfpPreview.src = '';
-        pfpPreview.style.display = 'none';
+        resizeImage(file, 256, (base64String) => {
+            playerData.picture = base64String;
+            pfpPreview.src = base64String;
+            pfpPreview.style.display = 'block'; // Show the circular preview
+        });
     }
 });
 
-
-// --- Join Button Logic ---
-joinButton.addEventListener('click', () => {
+// --- Functions ---
+function joinGame() {
     const roomCode = roomCodeInput.value.toUpperCase();
-    playerName = nameInput.value;
+    const name = nameInput.value;
 
-    if (!roomCode || !playerName) {
-        errorMessage.textContent = "Please fill out all fields.";
+    if (!roomCode || roomCode.length !== 4) {
+        showError("Please enter a 4-letter room code.");
         return;
     }
-    
-    // Get the Base64 image data from the preview
-    // We resize it for efficiency
-    resizeImage(pfpPreview.src, 128, 128, (base64Data) => {
-        connect(roomCode, playerName, base64Data);
-    });
-});
+    if (!name) {
+        showError("Please enter your name.");
+        return;
+    }
 
-// --- WebSocket Connection ---
-function connect(roomCode, name, picture) { // Picture parameter re-added
-    ws = new WebSocket(SERVER_URL);
+    playerData.code = roomCode;
+    playerData.name = name;
+    playerNameDisplay.textContent = name; // Set name on buzzer screen
 
-    ws.onopen = () => {
-        console.log('Connected to server.');
-        // Send the join message with picture data
-        ws.send(JSON.stringify({
-            type: 'join_room',
-            code: roomCode,
-            name: name,
-            picture: picture // Send the resized Base64 string
-        }));
-    };
+    showError("Connecting...");
 
-    ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        handleMessage(data);
-    };
+    try {
+        ws = new WebSocket(SERVER_URL);
 
-    ws.onclose = () => {
-        console.log('Disconnected from server.');
-        showJoinScreen("Lost connection to server.");
-    };
+        ws.onopen = () => {
+            console.log("Connected to relay server.");
+            // Send the complete player data object
+            ws.send(JSON.stringify(playerData));
+        };
 
-    ws.onerror = (error) => {
-        console.error('WebSocket Error:', error);
-        errorMessage.textContent = "Could not connect to server.";
-    };
-}
+        ws.onmessage = (event) => {
+            const msg = JSON.parse(event.data);
+            console.log("Message from server:", msg);
 
-// --- Message Handling ---
-function handleMessage(data) {
-    switch (data.type) {
-        case 'error':
-            errorMessage.textContent = data.message;
-            ws.close();
-            break;
-        case 'game_started':
-            showBuzzerScreen();
-            break;
-        case 'next_turn':
-            buzzerButton.disabled = false;
-            break;
-        case 'room_closed':
-            showJoinScreen("The game host has disconnected.");
-            break;
+            if (msg.type === "join_success") {
+                showScreen('buzzer');
+            } else if (msg.type === "start_game") {
+                showScreen('buzzer');
+            } else if (msg.type === "next_turn") {
+                enableBuzzer(true);
+            } else if (msg.type === "error") {
+                showError(msg.message);
+                ws.close();
+            }
+        };
+
+        ws.onerror = (err) => {
+            console.error("WebSocket error:", err);
+            showError("Could not connect to the server.");
+        };
+
+        ws.onclose = () => {
+            console.log("Disconnected from server.");
+            // Only show join screen if we're not already there
+            if (!joinScreen.classList.contains('active')) {
+                showScreen('join');
+                showError("Connection lost. Please rejoin.");
+            }
+        };
+
+    } catch (err) {
+        console.error("Failed to create WebSocket:", err);
+        showError("Failed to connect. Is the URL correct?");
     }
 }
 
-// --- View Switching ---
-function showBuzzerScreen() {
-    playerNameDisplay.textContent = playerName;
+function buzzIn() {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "buzz" }));
+        enableBuzzer(false);
+    }
+}
+
+function enableBuzzer(enabled) {
+    if (enabled) {
+        buzzerButton.disabled = false;
+        buzzerButton.querySelector('span').textContent = "BUZZ IN!";
+        buzzerButton.classList.remove('disabled');
+    } else {
+        buzzerButton.disabled = true;
+        buzzerButton.querySelector('span').textContent = "BUZZED!";
+        buzzerButton.classList.add('disabled');
+    }
+}
+
+function showScreen(screenName) {
     joinScreen.classList.remove('active');
-    buzzerScreen.classList.add('active');
-}
-
-function showJoinScreen(message) {
-    if (message) {
-        errorMessage.textContent = message;
-    }
-    roomCodeInput.value = '';
-    nameInput.value = '';
-    
-    // Reset pfp input and preview
-    pfpPreview.src = '';
-    pfpPreview.style.display = 'none';
-    pfpInput.value = null; // Clear the file input
-
     buzzerScreen.classList.remove('active');
-    joinScreen.classList.add('active');
-}
 
-// --- Buzzer Logic ---
-buzzerButton.addEventListener('click', () => {
-    buzzerButton.disabled = true;
-    ws.send(JSON.stringify({ type: 'buzz', name: playerName }));
-});
-
-// --- Image Resizing Helper ---
-// This function resizes the profile picture to save bandwidth
-function resizeImage(base64Str, maxWidth = 128, maxHeight = 128, callback) {
-    if (!base64Str || base64Str === pfpPreview.src && pfpPreview.style.display === 'none') {
-        // No valid image to process, or preview is empty, send null
-        callback(null); 
-        return;
+    if (screenName === 'join') {
+        joinScreen.classList.add('active');
+    } else if (screenName === 'buzzer') {
+        buzzerScreen.classList.add('active');
     }
-
-    let img = new Image();
-    img.src = base64Str;
-    img.onload = () => {
-        let canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height) {
-            if (width > maxWidth) {
-                height *= maxWidth / width;
-                width = maxWidth;
-            }
-        } else {
-            if (height > maxHeight) {
-                width *= maxHeight / height;
-                height = maxHeight;
-            }
-        }
-        canvas.width = width;
-        canvas.height = height;
-        let ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-        // Compress to JPEG with a quality of 0.7
-        callback(canvas.toDataURL('image/jpeg', 0.7)); 
-    };
-    img.onerror = () => {
-        // If there's an error loading the image (e.g., base64Str was empty/invalid)
-        console.error("Error loading image for resize. Sending null for picture.");
-        callback(null);
-    };
+    showError(""); // Clear errors on screen change
 }
+
+function showError(message) {
+    errorMessage.textContent = message;
+}
+
+// --- Image Utility Function ---
+function resizeImage(file, maxSize, callback) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+                if (width > maxSize) {
+                    height *= maxSize / width;
+                    width = maxSize;
+                }
+            } else {
+                if (height > maxSize) {
+                    width *= maxSize / height;
+                    height = maxSize;
+                }
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Get the resized image as a Base64 string
+            callback(canvas.toDataURL('image/jpeg', 0.9)); // Use JPEG for better compression
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
