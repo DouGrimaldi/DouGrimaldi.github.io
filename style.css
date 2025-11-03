@@ -1,0 +1,163 @@
+/* Basic reset and mobile setup */
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #1a202c; /* Dark blue-grey background */
+    color: white;
+    overflow: hidden;
+}
+
+.screen {
+    width: 100%;
+    height: 100%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    box-sizing: border-box;
+    padding: 20px;
+}
+
+.screen.active {
+    display: flex;
+}
+
+/* --- Join Screen Styles --- */
+
+.content-box {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 400px; /* Give it a max width */
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 25px;
+}
+
+.input-group label {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #a0aec0; /* Lighter grey for label */
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+input[type="text"] {
+    font-size: 1.25rem;
+    padding: 15px;
+    border: none;
+    background-color: #2d3748; /* Darker input background */
+    color: white;
+    border-radius: 8px;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+input[type="text"]::placeholder {
+    color: #718096; /* Grey for placeholder */
+    font-weight: bold;
+}
+
+/* --- Profile Picture Upload Styles --- */
+.pfp-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+input[type="file"] {
+    display: none; /* Hide the default file input */
+}
+
+.pfp-label {
+    display: inline-block;
+    padding: 10px 15px;
+    background-color: #4A709D; /* Blue for the upload button */
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-bottom: 15px;
+    font-size: 1rem; /* Slightly smaller than main button */
+    transition: background-color 0.1s ease;
+}
+
+.pfp-label:hover {
+    background-color: #5a80c0; /* Slightly lighter blue on hover */
+}
+
+.pfp-preview {
+    width: 80px;  /* Smaller size for preview */
+    height: 80px;
+    border-radius: 50%; /* Make it circular */
+    border: 2px solid #D4B268; /* Gold border */
+    object-fit: cover; /* Ensure image covers the circle */
+    background-color: #3e4c5b; /* Placeholder background */
+}
+
+
+/* --- Button Styles --- */
+button {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+    background-color: #4A709D; /* Blue button */
+    border: none;
+    padding: 15px 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%; /* Make button full-width of container */
+    margin-top: 10px;
+    transition: background-color 0.1s ease;
+}
+
+button:hover:not(:disabled) {
+    background-color: #5a80c0; /* Slightly lighter blue on hover */
+}
+
+#error-message {
+    color: #e53e3e;
+    font-weight: bold;
+    margin-top: 15px;
+    text-align: center;
+}
+
+/* --- Buzzer Screen Styles --- */
+
+#buzzer-button {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    border-radius: 0;
+    background-color: #4A709D;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    transition: background-color 0.1s ease;
+}
+
+#buzzer-button:disabled {
+    background-color: #2d3748;
+    color: #718096;
+}
+
+#buzzer-button span {
+    pointer-events: none;
+}
+
+#player-name-display {
+    position: absolute;
+    bottom: 20px;
+    font-size: 1.5rem;
+    color: #a0aec0;
+}
+
