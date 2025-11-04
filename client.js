@@ -13,7 +13,6 @@ const errorMessage = document.getElementById('error-message');
 
 const buzzerButton = document.getElementById('buzzer-button');
 
-// New board screen elements
 const playerPfp = document.getElementById('player-pfp');
 const playerScore = document.getElementById('player-score');
 const categoryContainer = document.getElementById('category-container');
@@ -21,9 +20,9 @@ const gridContainer = document.getElementById('grid-container');
 
 let ws;
 let playerName = '';
-let playerPicture = null; // Store our picture data
+let playerPicture = null;
 
-// const SERVER_URL = "ws://localhost:8080"; // For local testing
+// const SERVER_URL = "ws://localhost:8080";
 const SERVER_URL = "wss://relay-mgcs.onrender.com";
 
 // --- Profile Picture Handling ---
@@ -52,8 +51,13 @@ joinButton.addEventListener('click', () => {
         return;
     }
     
+    // --- MODIFIED: Provide immediate user feedback ---
+    joinButton.disabled = true;
+    joinButton.textContent = 'WAITING FOR HOST...';
+    errorMessage.textContent = ''; // Clear previous errors
+
     resizeImage(pfpPreview.src, 128, 128, (base64Data) => {
-        playerPicture = base64Data; // Store our picture for later use
+        playerPicture = base64Data;
         connect(roomCode, playerName, playerPicture);
     });
 });
@@ -90,7 +94,8 @@ function connect(roomCode, name, picture) {
 
     ws.onerror = (error) => {
         console.error('WebSocket Error:', error);
-        errorMessage.textContent = "Could not connect to server.";
+        // --- MODIFIED: Reset the button on connection error ---
+        showJoinScreen("Could not connect to server.");
     };
 }
 
@@ -99,13 +104,10 @@ function handleMessage(data) {
     switch (data.type) {
         case 'error':
             console.error("Server error:", data.message);
-            errorMessage.textContent = data.message;
-            ws.close();
+            // --- MODIFIED: Reset the button on server-side error ---
+            showJoinScreen(data.message);
             break;
-
-        // --- 'game_started' case is now removed ---
-
-        case 'sync_board_state': // This handles both initial start AND rejoin
+        case 'sync_board_state':
             console.log("Syncing board state.");
             showBoardScreen();
             buildGameBoard(data.board);
@@ -166,6 +168,10 @@ function showJoinScreen(message) {
     pfpInput.value = null;
     boardScreen.classList.remove('active');
     joinScreen.classList.add('active');
+
+    // --- MODIFIED: Reset the join button's state ---
+    joinButton.disabled = false;
+    joinButton.textContent = 'PLAY';
 }
 
 // --- Function to dynamically build the game board ---
