@@ -65,17 +65,15 @@ function connect(roomCode, name, picture) {
 
     ws.onopen = () => {
         console.log('Connection successful. Sending join_room message.');
-        // Send the join message with picture data
         ws.send(JSON.stringify({
             type: 'join_room',
             code: roomCode,
             name: name,
-            picture: picture // Send the resized Base64 string
+            picture: picture
         }));
     };
 
     ws.onmessage = (event) => {
-        // --- DEBUGGING: Log every single message from the server ---
         console.log('<<< MESSAGE RECEIVED:', event.data);
         try {
             const data = JSON.parse(event.data);
@@ -86,7 +84,7 @@ function connect(roomCode, name, picture) {
     };
 
     ws.onclose = () => {
-        console.warn('Connection closed.'); // Use warn for better visibility
+        console.warn('Connection closed.');
         showJoinScreen("Lost connection to server.");
     };
 
@@ -104,17 +102,16 @@ function handleMessage(data) {
             errorMessage.textContent = data.message;
             ws.close();
             break;
-        case 'game_started': // Still used for initial start
-            console.log("Game is starting, showing board screen.");
-            showBoardScreen();
-            break;
-        case 'sync_board_state': // For rejoining players
-            console.log("Syncing board state for rejoin.");
+
+        // --- 'game_started' case is now removed ---
+
+        case 'sync_board_state': // This handles both initial start AND rejoin
+            console.log("Syncing board state.");
             showBoardScreen();
             buildGameBoard(data.board);
             playerScore.textContent = data.score;
             break;
-        case 'board_update': // A word was chosen
+        case 'board_update':
             console.log(`Disabling button: cat ${data.categoryIndex}, word ${data.wordIndex}`);
             const buttonId = `word-${data.categoryIndex}-${data.wordIndex}`;
             const button = document.getElementById(buttonId);
@@ -122,19 +119,19 @@ function handleMessage(data) {
                 button.disabled = true;
             }
             break;
-        case 'scores_updated': // --- NEW: Handle the score update broadcast
+        case 'scores_updated':
             console.log("Scores have been updated.", data.players);
             const myData = data.players.find(p => p.Name.toUpperCase() === playerName.toUpperCase());
             if (myData) {
                 playerScore.textContent = myData.Score;
             }
             break;
-        case 'next_turn': // Show the buzzer
+        case 'next_turn':
             console.log("Buzzer is now active.");
             buzzerButton.disabled = false;
             buzzerOverlay.classList.remove('hidden');
             break;
-        case 'buzzer_lock': // Hide the buzzer
+        case 'buzzer_lock':
             console.log("Buzzers are now locked.");
             buzzerOverlay.classList.add('hidden');
             break;
@@ -147,12 +144,10 @@ function handleMessage(data) {
 
 // --- View Switching ---
 function showBoardScreen() {
-    // Set our own profile picture on the board screen
     if (playerPicture) {
         playerPfp.src = playerPicture;
         playerPfp.style.display = 'block';
     } else {
-        // Hide the pfp element if there is no picture
         playerPfp.style.display = 'none'; 
     }
     
@@ -166,27 +161,21 @@ function showJoinScreen(message) {
     }
     roomCodeInput.value = '';
     nameInput.value = '';
-    
     pfpPreview.src = '';
     pfpPreview.style.display = 'none';
     pfpInput.value = null;
-
     boardScreen.classList.remove('active');
     joinScreen.classList.add('active');
 }
 
 // --- Function to dynamically build the game board ---
 function buildGameBoard(boardData) {
-    // Clear existing board
     categoryContainer.innerHTML = '';
     gridContainer.innerHTML = '';
-
-    // Set grid columns
     const numCategories = boardData.Categories.length;
     categoryContainer.style.gridTemplateColumns = `repeat(${numCategories}, 1fr)`;
     gridContainer.style.gridTemplateColumns = `repeat(${numCategories}, 1fr)`;
 
-    // Create category labels
     boardData.Categories.forEach(cat => {
         const label = document.createElement('div');
         label.className = 'category-label';
@@ -194,7 +183,6 @@ function buildGameBoard(boardData) {
         categoryContainer.appendChild(label);
     });
 
-    // Create word buttons in column-major order
     const numWords = boardData.Categories[0].Words.length;
     for (let wordIndex = 0; wordIndex < numWords; wordIndex++) {
         for (let catIndex = 0; catIndex < numCategories; catIndex++) {
@@ -214,7 +202,6 @@ function buildGameBoard(boardData) {
 // --- Buzzer Logic ---
 buzzerButton.addEventListener('click', () => {
     buzzerButton.disabled = true;
-    // --- DEBUGGING: Log the message we are sending ---
     console.log('>>> SENDING MESSAGE: buzz');
     ws.send(JSON.stringify({ type: 'buzz', name: playerName }));
 });
@@ -231,17 +218,10 @@ function resizeImage(base64Str, maxWidth = 128, maxHeight = 128, callback) {
         let canvas = document.createElement('canvas');
         let width = img.width;
         let height = img.height;
-
         if (width > height) {
-            if (width > maxWidth) {
-                height *= maxWidth / width;
-                width = maxWidth;
-            }
+            if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
         } else {
-            if (height > maxHeight) {
-                width *= maxHeight / height;
-                height = maxHeight;
-            }
+            if (height > maxHeight) { width *= maxHeight / height; height = maxHeight; }
         }
         canvas.width = width;
         canvas.height = height;
