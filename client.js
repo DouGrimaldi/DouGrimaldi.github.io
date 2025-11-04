@@ -13,6 +13,8 @@ const errorMessage = document.getElementById('error-message');
 
 const buzzerButton = document.getElementById('buzzer-button');
 
+// New board screen elements
+const playerNameBoard = document.getElementById('player-name-board'); // --- NEW: Get reference to the h1 element ---
 const playerPfp = document.getElementById('player-pfp');
 const playerScore = document.getElementById('player-score');
 const categoryContainer = document.getElementById('category-container');
@@ -51,10 +53,9 @@ joinButton.addEventListener('click', () => {
         return;
     }
     
-    // --- MODIFIED: Provide immediate user feedback ---
     joinButton.disabled = true;
     joinButton.textContent = 'WAITING FOR HOST...';
-    errorMessage.textContent = ''; // Clear previous errors
+    errorMessage.textContent = '';
 
     resizeImage(pfpPreview.src, 128, 128, (base64Data) => {
         playerPicture = base64Data;
@@ -94,7 +95,6 @@ function connect(roomCode, name, picture) {
 
     ws.onerror = (error) => {
         console.error('WebSocket Error:', error);
-        // --- MODIFIED: Reset the button on connection error ---
         showJoinScreen("Could not connect to server.");
     };
 }
@@ -104,7 +104,6 @@ function handleMessage(data) {
     switch (data.type) {
         case 'error':
             console.error("Server error:", data.message);
-            // --- MODIFIED: Reset the button on server-side error ---
             showJoinScreen(data.message);
             break;
         case 'sync_board_state':
@@ -146,6 +145,9 @@ function handleMessage(data) {
 
 // --- View Switching ---
 function showBoardScreen() {
+    // --- MODIFIED: Set the player's name in the new h1 element ---
+    playerNameBoard.textContent = playerName;
+
     if (playerPicture) {
         playerPfp.src = playerPicture;
         playerPfp.style.display = 'block';
@@ -169,7 +171,6 @@ function showJoinScreen(message) {
     boardScreen.classList.remove('active');
     joinScreen.classList.add('active');
 
-    // --- MODIFIED: Reset the join button's state ---
     joinButton.disabled = false;
     joinButton.textContent = 'PLAY';
 }
