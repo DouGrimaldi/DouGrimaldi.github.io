@@ -2,6 +2,7 @@
 const joinScreen = document.getElementById('join-screen');
 const boardScreen = document.getElementById('board-screen');
 const buzzerOverlay = document.getElementById('buzzer-overlay');
+const gameOverScreen = document.getElementById('game-over-screen'); // --- NEW ---
 
 const roomCodeInput = document.getElementById('room-code-input');
 const nameInput = document.getElementById('name-input');
@@ -10,15 +11,15 @@ const pfpPreview = document.getElementById('pfp-preview');
 
 const joinButton = document.getElementById('join-button');
 const errorMessage = document.getElementById('error-message');
-
 const buzzerButton = document.getElementById('buzzer-button');
+const playAgainButton = document.getElementById('play-again-button'); // --- NEW ---
 
-// New board screen elements
-const playerNameBoard = document.getElementById('player-name-board'); // --- NEW: Get reference to the h1 element ---
+const playerNameBoard = document.getElementById('player-name-board');
 const playerPfp = document.getElementById('player-pfp');
 const playerScore = document.getElementById('player-score');
 const categoryContainer = document.getElementById('category-container');
 const gridContainer = document.getElementById('grid-container');
+const gameOverMessage = document.getElementById('game-over-message'); // --- NEW ---
 
 let ws;
 let playerName = '';
@@ -43,7 +44,7 @@ pfpInput.addEventListener('change', () => {
     }
 });
 
-// --- Join Button Logic ---
+// --- Join & Play Again Button Logic ---
 joinButton.addEventListener('click', () => {
     const roomCode = roomCodeInput.value.toUpperCase();
     playerName = nameInput.value;
@@ -62,6 +63,12 @@ joinButton.addEventListener('click', () => {
         connect(roomCode, playerName, playerPicture);
     });
 });
+
+// --- NEW: Event listener for the play again button ---
+playAgainButton.addEventListener('click', () => {
+    showJoinScreen();
+});
+
 
 // --- WebSocket Connection ---
 function connect(roomCode, name, picture) {
@@ -140,39 +147,56 @@ function handleMessage(data) {
             console.warn("Host closed the room.");
             showJoinScreen("The game host has disconnected.");
             break;
+        // --- NEW: Handle the game over message ---
+        case 'game_over':
+            console.log("Game over. Winner:", data.winnerName);
+            // Check if this client is the winner
+            if (data.winnerName && data.winnerName.toUpperCase() === playerName.toUpperCase()) {
+                gameOverMessage.textContent = 'YOU WIN!';
+                gameOverMessage.className = 'win';
+            } else {
+                gameOverMessage.textContent = 'YOU LOSE!';
+                gameOverMessage.className = 'lose';
+            }
+            showGameOverScreen();
+            break;
     }
 }
 
 // --- View Switching ---
 function showBoardScreen() {
-    // --- MODIFIED: Set the player's name in the new h1 element ---
     playerNameBoard.textContent = playerName;
-
     if (playerPicture) {
         playerPfp.src = playerPicture;
         playerPfp.style.display = 'block';
     } else {
         playerPfp.style.display = 'none'; 
     }
-    
     joinScreen.classList.remove('active');
+    gameOverScreen.classList.remove('active');
     boardScreen.classList.add('active');
 }
 
 function showJoinScreen(message) {
     if (message) {
         errorMessage.textContent = message;
+    } else {
+        errorMessage.textContent = ''; // Clear error on normal reset
     }
-    roomCodeInput.value = '';
-    nameInput.value = '';
-    pfpPreview.src = '';
-    pfpPreview.style.display = 'none';
-    pfpInput.value = null;
+    // Don't clear inputs, user might want to rejoin
     boardScreen.classList.remove('active');
+    gameOverScreen.classList.remove('active');
     joinScreen.classList.add('active');
 
     joinButton.disabled = false;
     joinButton.textContent = 'PLAY';
+}
+
+// --- NEW: Function to show the game over screen ---
+function showGameOverScreen() {
+    boardScreen.classList.remove('active');
+    joinScreen.classList.remove('active');
+    gameOverScreen.classList.add('active');
 }
 
 // --- Function to dynamically build the game board ---
