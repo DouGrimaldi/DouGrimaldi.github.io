@@ -12,7 +12,6 @@ const joinButton = document.getElementById('join-button');
 const errorMessage = document.getElementById('error-message');
 
 const buzzerButton = document.getElementById('buzzer-button');
-const playerNameDisplay = document.getElementById('player-name-display'); // Note: This is no longer used, can be removed
 
 // New board screen elements
 const playerPfp = document.getElementById('player-pfp');
@@ -24,10 +23,10 @@ let ws;
 let playerName = '';
 let playerPicture = null; // Store our picture data
 
-const SERVER_URL = "wss://relay-mgcs.onrender.com";
 // const SERVER_URL = "ws://localhost:8080"; // For local testing
+const SERVER_URL = "wss://relay-mgcs.onrender.com";
 
-// --- Profile Picture Handling (Unchanged) ---
+// --- Profile Picture Handling ---
 pfpInput.addEventListener('change', () => {
     const file = pfpInput.files[0];
     if (file) {
@@ -59,27 +58,35 @@ joinButton.addEventListener('click', () => {
     });
 });
 
-// --- WebSocket Connection (Unchanged) ---
+// --- WebSocket Connection ---
 function connect(roomCode, name, picture) {
+    console.log(`Attempting to connect to ${SERVER_URL} with code ${roomCode}`);
     ws = new WebSocket(SERVER_URL);
 
     ws.onopen = () => {
-        console.log('Connected to server.');
+        console.log('Connection successful. Sending join_room message.');
+        // Send the join message with picture data
         ws.send(JSON.stringify({
             type: 'join_room',
             code: roomCode,
             name: name,
-            picture: picture
+            picture: picture // Send the resized Base64 string
         }));
     };
 
     ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        handleMessage(data);
+        // --- DEBUGGING: Log every single message from the server ---
+        console.log('<<< MESSAGE RECEIVED:', event.data);
+        try {
+            const data = JSON.parse(event.data);
+            handleMessage(data);
+        } catch (error) {
+            console.error("Error parsing or handling message:", error);
+        }
     };
 
     ws.onclose = () => {
-        console.log('Disconnected from server.');
+        console.warn('Connection closed.'); // Use warn for better visibility
         showJoinScreen("Lost connection to server.");
     };
 
@@ -89,41 +96,50 @@ function connect(roomCode, name, picture) {
     };
 }
 
-// --- NEW Message Handling Logic ---
+// --- Message Handling ---
 function handleMessage(data) {
-    console.log('Received message:', data);
     switch (data.type) {
         case 'error':
+            console.error("Server error:", data.message);
             errorMessage.textContent = data.message;
             ws.close();
             break;
         case 'game_started': // Still used for initial start
+            console.log("Game is starting, showing board screen.");
             showBoardScreen();
             break;
         case 'sync_board_state': // For rejoining players
+            console.log("Syncing board state for rejoin.");
             showBoardScreen();
             buildGameBoard(data.board);
-            playerScore.textContent = data.score; // Update score
+            playerScore.textContent = data.score;
             break;
         case 'board_update': // A word was chosen
+            console.log(`Disabling button: cat ${data.categoryIndex}, word ${data.wordIndex}`);
             const buttonId = `word-${data.categoryIndex}-${data.wordIndex}`;
             const button = document.getElementById(buttonId);
             if (button) {
                 button.disabled = true;
             }
-            // Update score if it was this player who answered
-            if (data.playerIndex === myPlayerIndex) { // We need to know our index
-                 playerScore.textContent = data.newScore;
+            break;
+        case 'scores_updated': // --- NEW: Handle the score update broadcast
+            console.log("Scores have been updated.", data.players);
+            const myData = data.players.find(p => p.Name.toUpperCase() === playerName.toUpperCase());
+            if (myData) {
+                playerScore.textContent = myData.Score;
             }
             break;
         case 'next_turn': // Show the buzzer
+            console.log("Buzzer is now active.");
             buzzerButton.disabled = false;
             buzzerOverlay.classList.remove('hidden');
             break;
         case 'buzzer_lock': // Hide the buzzer
+            console.log("Buzzers are now locked.");
             buzzerOverlay.classList.add('hidden');
             break;
         case 'room_closed':
+            console.warn("Host closed the room.");
             showJoinScreen("The game host has disconnected.");
             break;
     }
@@ -134,8 +150,9 @@ function showBoardScreen() {
     // Set our own profile picture on the board screen
     if (playerPicture) {
         playerPfp.src = playerPicture;
+        playerPfp.style.display = 'block';
     } else {
-        // You could set a default local image here if you want
+        // Hide the pfp element if there is no picture
         playerPfp.style.display = 'none'; 
     }
     
@@ -149,6 +166,7 @@ function showJoinScreen(message) {
     }
     roomCodeInput.value = '';
     nameInput.value = '';
+    
     pfpPreview.src = '';
     pfpPreview.style.display = 'none';
     pfpInput.value = null;
@@ -157,7 +175,7 @@ function showJoinScreen(message) {
     joinScreen.classList.add('active');
 }
 
-// --- NEW: Function to dynamically build the game board ---
+// --- Function to dynamically build the game board ---
 function buildGameBoard(boardData) {
     // Clear existing board
     categoryContainer.innerHTML = '';
@@ -193,14 +211,15 @@ function buildGameBoard(boardData) {
     }
 }
 
-
-// --- Buzzer Logic (Unchanged) ---
+// --- Buzzer Logic ---
 buzzerButton.addEventListener('click', () => {
     buzzerButton.disabled = true;
+    // --- DEBUGGING: Log the message we are sending ---
+    console.log('>>> SENDING MESSAGE: buzz');
     ws.send(JSON.stringify({ type: 'buzz', name: playerName }));
 });
 
-// --- Image Resizing Helper (Unchanged) ---
+// --- Image Resizing Helper ---
 function resizeImage(base64Str, maxWidth = 128, maxHeight = 128, callback) {
     if (!base64Str || base64Str === pfpPreview.src && pfpPreview.style.display === 'none') {
         callback(null); 
@@ -212,10 +231,17 @@ function resizeImage(base64Str, maxWidth = 128, maxHeight = 128, callback) {
         let canvas = document.createElement('canvas');
         let width = img.width;
         let height = img.height;
+
         if (width > height) {
-            if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
+            if (width > maxWidth) {
+                height *= maxWidth / width;
+                width = maxWidth;
+            }
         } else {
-            if (height > maxHeight) { width *= maxHeight / height; height = maxHeight; }
+            if (height > maxHeight) {
+                width *= maxHeight / height;
+                height = maxHeight;
+            }
         }
         canvas.width = width;
         canvas.height = height;
@@ -224,7 +250,7 @@ function resizeImage(base64Str, maxWidth = 128, maxHeight = 128, callback) {
         callback(canvas.toDataURL('image/jpeg', 0.7)); 
     };
     img.onerror = () => {
-        console.error("Error loading image for resize.");
+        console.error("Error loading image for resize. Sending null for picture.");
         callback(null);
     };
 }
