@@ -1,4 +1,134 @@
-/* --- Board Screen Styles --- */
+/* Basic reset and mobile setup */
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #1a202c; /* Dark blue-grey background */
+    color: white;
+    overflow: hidden;
+}
+
+/* --- CORE SCREEN VISIBILITY LOGIC --- */
+.screen {
+    width: 100%;
+    height: 100%;
+    display: none; /* CRITICAL: All screens are hidden by default */
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    box-sizing: border-box;
+    padding: 20px;
+}
+
+.screen.active {
+    display: flex; /* CRITICAL: Only the active screen is shown */
+}
+
+/* --- Join Screen Styles (Unchanged) --- */
+.content-box {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 400px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 25px;
+}
+
+.input-group label {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #a0aec0;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+input[type="text"] {
+    font-size: 1.25rem;
+    padding: 15px;
+    border: none;
+    background-color: #2d3748;
+    color: white;
+    border-radius: 8px;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+input[type="text"]::placeholder {
+    color: #718096;
+    font-weight: bold;
+}
+
+.pfp-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+.pfp-label {
+    display: inline-block;
+    padding: 10px 15px;
+    background-color: #4A709D;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-bottom: 15px;
+    font-size: 1rem;
+    transition: background-color 0.1s ease;
+}
+
+.pfp-label:hover {
+    background-color: #5a80c0;
+}
+
+.pfp-preview {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 2px solid #D4B268;
+    object-fit: cover;
+    background-color: #3e4c5b;
+}
+
+button {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+    background-color: #4A709D;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+    transition: background-color 0.1s ease;
+}
+
+button:hover:not(:disabled) {
+    background-color: #5a80c0;
+}
+
+#error-message {
+    color: #e53e3e;
+    font-weight: bold;
+    margin-top: 15px;
+    text-align: center;
+}
+
+
+/* --- NEW: Board Screen Styles --- */
+/* The #board-screen is a .screen, so it inherits the display logic */
 #board-screen {
     justify-content: flex-start; /* Align content to the top */
     padding: 10px;
@@ -53,6 +183,7 @@
     font-weight: bold;
     font-size: 0.7rem;
     border-radius: 4px;
+    text-transform: uppercase;
 }
 
 #grid-container {
@@ -76,14 +207,14 @@
 }
 
 
-/* --- Buzzer Overlay Styles --- */
+/* --- NEW: Buzzer Overlay Styles --- */
 #buzzer-overlay {
-    position: fixed;
+    position: fixed; /* Sits on top of everything */
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -91,9 +222,10 @@
 }
 
 #buzzer-overlay.hidden {
-    display: none;
+    display: none; /* How we hide/show the overlay */
 }
 
+/* This targets the buzzer button ONLY when it's in the overlay */
 #buzzer-overlay #buzzer-button {
     width: 80vw;
     height: 80vw;
@@ -102,4 +234,10 @@
     border-radius: 50%;
     font-size: 3rem;
     padding: 20px;
+    margin: 0; /* Reset margin */
+}
+
+#buzzer-overlay #buzzer-button:disabled {
+    background-color: #2d3748;
+    color: #718096;
 }
