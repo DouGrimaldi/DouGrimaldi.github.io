@@ -8,39 +8,49 @@
 </head>
 <body>
 
+    <!-- Join Screen (No changes) -->
     <div id="join-screen" class="screen active">
         <div class="content-box">
-            
             <div class="input-group">
                 <label for="room-code-input">ROOM CODE</label>
                 <input type="text" id="room-code-input" placeholder="ENTER 4-LETTER CODE" maxlength="4">
             </div>
-
             <div class="input-group">
                 <label for="name-input">NAME</label>
                 <input type="text" id="name-input" placeholder="ENTER YOUR NAME" maxlength="20">
             </div>
-
             <div class="pfp-group">
-                <label for="pfp-input" class="pfp-label">Profile Picture</label>
+                <label for="pfp-input" class="pfp-label">Upload</label>
                 <input type="file" id="pfp-input" accept="image/png, image/jpeg">
                 <img id="pfp-preview" src="" alt="Profile Preview" class="pfp-preview" style="display: none;">
             </div>
-            
             <button id="join-button">PLAY</button>
             <p id="error-message"></p>
         </div>
     </div>
 
-    <div id="buzzer-screen" class="screen">
-        <button id="buzzer-button">
-            <span>BUZZ IN!</span>
-        </button>
-        <p id="player-name-display"></p>
+    <!-- NEW: Board Screen -->
+    <div id="board-screen" class="screen">
+        <!-- Player's personal info -->
+        <div id="player-info">
+            <img id="player-pfp" src="" alt="You">
+            <div id="player-score">0</div>
+        </div>
+
+        <!-- The actual game board grid -->
+        <div id="board-grid">
+            <div id="category-container"></div>
+            <div id="grid-container"></div>
+        </div>
+
+        <!-- Buzzer will be an overlay on top of this screen -->
+        <div id="buzzer-overlay" class="hidden">
+            <button id="buzzer-button">
+                <span>BUZZ IN!</span>
+            </button>
+        </div>
     </div>
 
     <script src="client.js"></script>
 </body>
 </html>
-
-
