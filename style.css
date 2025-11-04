@@ -256,17 +256,34 @@ button:disabled {
     color: #718096;
 }
 
-/* --- NEW: Responsive Styles for Mobile --- */
-/* These rules apply only when the screen width is 600px or less */
+/* --- NEW: Game Over Screen Styles --- */
+#game-over-message {
+    font-size: 4rem;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 30px;
+    text-transform: uppercase;
+}
+
+#game-over-message.win {
+    color: #D4B268; /* Gold color for winning */
+}
+
+#game-over-message.lose {
+    color: #a0aec0; /* Grey color for losing */
+}
+
+
+/* --- Responsive Styles for Mobile --- */
 @media (max-width: 600px) {
     .category-label {
-        font-size: 0.6rem;  /* Make category font smaller */
-        padding: 8px 2px;   /* Reduce vertical and horizontal padding */
-        word-break: break-all; /* Force long words to wrap if necessary */
+        font-size: 0.6rem;
+        padding: 8px 2px;
+        word-break: break-all;
     }
 
     .word-button {
-        font-size: 1rem;    /* Make the points font slightly smaller */
-        padding: 12px 5px;  /* Reduce padding to make buttons shorter */
+        font-size: 1rem;
+        padding: 12px 5px;
     }
 }
