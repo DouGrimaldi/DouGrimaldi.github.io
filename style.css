@@ -1,163 +1,105 @@
-/* Basic reset and mobile setup */
-body, html {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: #1a202c; /* Dark blue-grey background */
-    color: white;
-    overflow: hidden;
+/* --- Board Screen Styles --- */
+#board-screen {
+    justify-content: flex-start; /* Align content to the top */
+    padding: 10px;
 }
 
-.screen {
-    width: 100%;
-    height: 100%;
-    display: none;
+#player-info {
+    display: flex;
     align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    box-sizing: border-box;
-    padding: 20px;
-}
-
-.screen.active {
-    display: flex;
-}
-
-/* --- Join Screen Styles --- */
-
-.content-box {
-    display: flex;
-    flex-direction: column;
+    justify-content: space-between;
     width: 100%;
-    max-width: 400px; /* Give it a max width */
-}
-
-.input-group {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 25px;
-}
-
-.input-group label {
-    font-size: 0.9rem;
-    font-weight: bold;
-    color: #a0aec0; /* Lighter grey for label */
-    margin-bottom: 8px;
-    text-transform: uppercase;
-}
-
-input[type="text"] {
-    font-size: 1.25rem;
-    padding: 15px;
-    border: none;
-    background-color: #2d3748; /* Darker input background */
-    color: white;
+    max-width: 500px;
+    padding: 5px 10px;
+    background-color: #2d3748;
     border-radius: 8px;
-    text-transform: uppercase;
-    font-weight: bold;
-}
-
-input[type="text"]::placeholder {
-    color: #718096; /* Grey for placeholder */
-    font-weight: bold;
-}
-
-/* --- Profile Picture Upload Styles --- */
-.pfp-group {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 25px;
-}
-
-input[type="file"] {
-    display: none; /* Hide the default file input */
-}
-
-.pfp-label {
-    display: inline-block;
-    padding: 10px 15px;
-    background-color: #4A709D; /* Blue for the upload button */
-    color: white;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
     margin-bottom: 15px;
-    font-size: 1rem; /* Slightly smaller than main button */
-    transition: background-color 0.1s ease;
+    box-sizing: border-box;
 }
 
-.pfp-label:hover {
-    background-color: #5a80c0; /* Slightly lighter blue on hover */
+#player-pfp {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #D4B268;
 }
 
-.pfp-preview {
-    width: 80px;  /* Smaller size for preview */
-    height: 80px;
-    border-radius: 50%; /* Make it circular */
-    border: 2px solid #D4B268; /* Gold border */
-    object-fit: cover; /* Ensure image covers the circle */
-    background-color: #3e4c5b; /* Placeholder background */
-}
-
-
-/* --- Button Styles --- */
-button {
-    font-size: 1.5rem;
+#player-score {
+    font-size: 2rem;
     font-weight: bold;
     color: white;
-    background-color: #4A709D; /* Blue button */
-    border: none;
-    padding: 15px 30px;
-    border-radius: 8px;
-    cursor: pointer;
-    width: 100%; /* Make button full-width of container */
-    margin-top: 10px;
-    transition: background-color 0.1s ease;
 }
 
-button:hover:not(:disabled) {
-    background-color: #5a80c0; /* Slightly lighter blue on hover */
-}
-
-#error-message {
-    color: #e53e3e;
-    font-weight: bold;
-    margin-top: 15px;
-    text-align: center;
-}
-
-/* --- Buzzer Screen Styles --- */
-
-#buzzer-button {
+#board-grid {
     width: 100%;
-    height: 100%;
-    margin: 0;
-    border-radius: 0;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+}
+
+#category-container {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: 5px;
+    margin-bottom: 5px;
+}
+
+.category-label {
+    background-color: #22365B;
+    padding: 10px 5px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 0.7rem;
+    border-radius: 4px;
+}
+
+#grid-container {
+    display: grid;
+    gap: 5px;
+}
+
+.word-button {
     background-color: #4A709D;
     color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 15px 5px;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.word-button:disabled {
+    background-color: #1a202c;
+    color: #4A709D;
+}
+
+
+/* --- Buzzer Overlay Styles --- */
+#buzzer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 4rem;
-    transition: background-color 0.1s ease;
+    z-index: 100;
 }
 
-#buzzer-button:disabled {
-    background-color: #2d3748;
-    color: #718096;
+#buzzer-overlay.hidden {
+    display: none;
 }
 
-#buzzer-button span {
-    pointer-events: none;
+#buzzer-overlay #buzzer-button {
+    width: 80vw;
+    height: 80vw;
+    max-width: 400px;
+    max-height: 400px;
+    border-radius: 50%;
+    font-size: 3rem;
+    padding: 20px;
 }
-
-#player-name-display {
-    position: absolute;
-    bottom: 20px;
-    font-size: 1.5rem;
-    color: #a0aec0;
-}
-
