@@ -119,11 +119,10 @@ button:hover:not(:disabled) {
     background-color: #5a80c0;
 }
 
-/* --- NEW: This is the rule that was missing --- */
 button:disabled {
-    background-color: #2d3748; /* Darker, inactive color */
-    color: #a0aec0;           /* Muted text color */
-    cursor: not-allowed;     /* Show a 'not allowed' cursor */
+    background-color: #2d3748;
+    color: #a0aec0;
+    cursor: not-allowed;
 }
 
 
@@ -139,6 +138,16 @@ button:disabled {
 #board-screen {
     justify-content: center;
     padding: 10px;
+}
+
+/* --- NEW: Style for the player's name at the top --- */
+#player-name-board {
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    color: #a0aec0; /* Lighter grey */
+    margin: 0 0 15px 0; /* Remove default margins, add margin to bottom */
+    text-align: center;
+    width: 100%;
 }
 
 #player-info {
@@ -243,7 +252,6 @@ button:disabled {
     margin: 0;
 }
 
-/* This more specific rule for the buzzer will override the general one */
 #buzzer-overlay #buzzer-button:disabled {
     background-color: #2d3748;
     color: #718096;
