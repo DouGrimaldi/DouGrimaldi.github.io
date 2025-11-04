@@ -8,7 +8,7 @@
 </head>
 <body>
 
-    <!-- Join Screen (No changes) -->
+    <!-- Join Screen -->
     <div id="join-screen" class="screen active">
         <div class="content-box">
             <div class="input-group">
@@ -31,26 +31,27 @@
 
     <!-- Board Screen -->
     <div id="board-screen" class="screen">
-        <!-- NEW: Added an H1 for the player's name -->
         <h1 id="player-name-board"></h1>
-
-        <!-- Player's personal info -->
         <div id="player-info">
             <img id="player-pfp" src="" alt="You">
             <div id="player-score">0</div>
         </div>
-
-        <!-- The actual game board grid -->
         <div id="board-grid">
             <div id="category-container"></div>
             <div id="grid-container"></div>
         </div>
-
-        <!-- Buzzer will be an overlay on top of this screen -->
         <div id="buzzer-overlay" class="hidden">
             <button id="buzzer-button">
                 <span>BUZZ IN!</span>
             </button>
+        </div>
+    </div>
+
+    <!-- NEW: Game Over Screen -->
+    <div id="game-over-screen" class="screen">
+        <div class="content-box">
+            <h1 id="game-over-message"></h1>
+            <button id="play-again-button">PLAY AGAIN</button>
         </div>
     </div>
 
