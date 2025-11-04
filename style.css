@@ -14,7 +14,7 @@ body, html {
 .screen {
     width: 100%;
     height: 100%;
-    display: none; /* CRITICAL: All screens are hidden by default */
+    display: none;
     align-items: center;
     justify-content: center;
     flex-direction: column;
@@ -23,10 +23,10 @@ body, html {
 }
 
 .screen.active {
-    display: flex; /* CRITICAL: Only the active screen is shown */
+    display: flex;
 }
 
-/* --- Join Screen Styles (Unchanged) --- */
+/* --- Join Screen Styles --- */
 .content-box {
     display: flex;
     flex-direction: column;
@@ -119,6 +119,14 @@ button:hover:not(:disabled) {
     background-color: #5a80c0;
 }
 
+/* --- NEW: This is the rule that was missing --- */
+button:disabled {
+    background-color: #2d3748; /* Darker, inactive color */
+    color: #a0aec0;           /* Muted text color */
+    cursor: not-allowed;     /* Show a 'not allowed' cursor */
+}
+
+
 #error-message {
     color: #e53e3e;
     font-weight: bold;
@@ -129,8 +137,7 @@ button:hover:not(:disabled) {
 
 /* --- Board Screen Styles --- */
 #board-screen {
-    /* --- MODIFIED: This is the only change you need. --- */
-    justify-content: center; /* Changed from 'flex-start' to 'center' */
+    justify-content: center;
     padding: 10px;
 }
 
@@ -236,6 +243,7 @@ button:hover:not(:disabled) {
     margin: 0;
 }
 
+/* This more specific rule for the buzzer will override the general one */
 #buzzer-overlay #buzzer-button:disabled {
     background-color: #2d3748;
     color: #718096;
