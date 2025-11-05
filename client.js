@@ -26,7 +26,7 @@ let playerName = '';
 let playerPicture = null;
 
 // const SERVER_URL = "ws://localhost:8080";
-const SERVER_URL = "wss://relay-mgcs.onrender.com";
+const SERVER_URL = "wss://relay-fnoq.onrender.com";
 
 // --- Profile Picture Handling ---
 pfpInput.addEventListener('change', () => {
@@ -265,3 +265,4 @@ function resizeImage(base64Str, maxWidth = 128, maxHeight = 128, callback) {
         callback(null);
     };
 }
+
