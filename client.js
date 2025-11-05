@@ -1,4 +1,3 @@
-// --- NEW: Wait for the entire HTML document to be ready before running any script ---
 document.addEventListener('DOMContentLoaded', () => {
 
     // Get references to all our HTML elements
@@ -19,8 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let ws; // This will hold our WebSocket connection
     let playerName = '';
 
-    // --- MODIFIED: Changed the URL to your live Render.com server ---
-    // Use wss:// for a secure connection, which is required by GitHub Pages (https)
     const SERVER_URL = "wss://relay-fnoq.onrender.com"; 
 
     // --- Profile Picture Handling ---
@@ -30,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const reader = new FileReader();
             reader.onload = (e) => {
                 pfpPreview.src = e.target.result;
-                pfpPreview.style.display = 'block'; // Make it visible
+                pfpPreview.style.display = 'block';
             };
             reader.readAsDataURL(file);
         } else {
@@ -50,7 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
-        // Request a larger image (256x256) for better quality
         resizeImage(pfpPreview.src, 256, 256, (base64Data) => {
             connect(roomCode, playerName, base64Data);
         });
@@ -62,12 +58,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ws.onopen = () => {
             console.log('Connected to server.');
-            // Send the join message with picture data
             ws.send(JSON.stringify({
                 type: 'join_room',
                 code: roomCode,
                 name: name,
-                picture: picture // Send the resized Base64 string
+                picture: picture
             }));
         };
 
@@ -89,12 +84,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Message Handling ---
     function handleMessage(data) {
+        // --- MODIFIED: The logic to switch screens has been moved ---
+        // to the correct message type.
+        console.log("Received message: ", data); // Good for debugging
+
         switch (data.type) {
             case 'error':
                 errorMessage.textContent = data.message;
                 ws.close();
                 break;
-            case 'game_started':
+            // --- NEW: This is the correct message to listen for when the game starts ---
+            case 'sync_board_state':
                 showBuzzerScreen();
                 break;
             case 'next_turn':
@@ -103,6 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'room_closed':
                 showJoinScreen("The game host has disconnected.");
                 break;
+            // --- REMOVED: The 'game_started' case is no longer used by the host ---
         }
     }
 
@@ -120,10 +121,9 @@ document.addEventListener('DOMContentLoaded', () => {
         roomCodeInput.value = '';
         nameInput.value = '';
         
-        // Reset pfp input and preview
         pfpPreview.src = '';
         pfpPreview.style.display = 'none';
-        pfpInput.value = null; // Clear the file input
+        pfpInput.value = null;
 
         buzzerScreen.classList.remove('active');
         joinScreen.classList.add('active');
@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ws.send(JSON.stringify({ type: 'buzz', name: playerName }));
     });
 
-    // This function resizes to a larger size and uses higher quality JPEG compression
+    // --- Image Resizing Helper ---
     function resizeImage(base64Str, maxWidth = 256, maxHeight = 256, callback) {
         if (!base64Str || base64Str === pfpPreview.src && pfpPreview.style.display === 'none') {
             callback(null); 
@@ -165,7 +165,6 @@ document.addEventListener('DOMContentLoaded', () => {
             let ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
             
-            // Increased compression quality from 0.7 to 0.85
             callback(canvas.toDataURL('image/jpeg', 0.85)); 
         };
         img.onerror = () => {
@@ -173,6 +172,4 @@ document.addEventListener('DOMContentLoaded', () => {
             callback(null);
         };
     }
-
-// --- NEW: Close the DOMContentLoaded listener ---
 });
