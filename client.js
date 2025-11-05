@@ -2,7 +2,7 @@
 const joinScreen = document.getElementById('join-screen');
 const boardScreen = document.getElementById('board-screen');
 const buzzerOverlay = document.getElementById('buzzer-overlay');
-const gameOverScreen = document.getElementById('game-over-screen'); // --- NEW ---
+const gameOverScreen = document.getElementById('game-over-screen');
 
 const roomCodeInput = document.getElementById('room-code-input');
 const nameInput = document.getElementById('name-input');
@@ -12,14 +12,14 @@ const pfpPreview = document.getElementById('pfp-preview');
 const joinButton = document.getElementById('join-button');
 const errorMessage = document.getElementById('error-message');
 const buzzerButton = document.getElementById('buzzer-button');
-const playAgainButton = document.getElementById('play-again-button'); // --- NEW ---
+const playAgainButton = document.getElementById('play-again-button');
 
 const playerNameBoard = document.getElementById('player-name-board');
 const playerPfp = document.getElementById('player-pfp');
 const playerScore = document.getElementById('player-score');
 const categoryContainer = document.getElementById('category-container');
 const gridContainer = document.getElementById('grid-container');
-const gameOverMessage = document.getElementById('game-over-message'); // --- NEW ---
+const gameOverMessage = document.getElementById('game-over-message');
 
 let ws;
 let playerName = '';
@@ -58,13 +58,13 @@ joinButton.addEventListener('click', () => {
     joinButton.textContent = 'WAITING FOR HOST...';
     errorMessage.textContent = '';
 
-    resizeImage(pfpPreview.src, 128, 128, (base64Data) => {
+    // --- MODIFIED: Increased the requested image size to 256x256 for better quality ---
+    resizeImage(pfpPreview.src, 256, 256, (base64Data) => {
         playerPicture = base64Data;
         connect(roomCode, playerName, playerPicture);
     });
 });
 
-// --- NEW: Event listener for the play again button ---
 playAgainButton.addEventListener('click', () => {
     showJoinScreen();
 });
@@ -147,10 +147,8 @@ function handleMessage(data) {
             console.warn("Host closed the room.");
             showJoinScreen("The game host has disconnected.");
             break;
-        // --- NEW: Handle the game over message ---
         case 'game_over':
             console.log("Game over. Winner:", data.winnerName);
-            // Check if this client is the winner
             if (data.winnerName && data.winnerName.toUpperCase() === playerName.toUpperCase()) {
                 gameOverMessage.textContent = 'YOU WIN!';
                 gameOverMessage.className = 'win';
@@ -183,7 +181,6 @@ function showJoinScreen(message) {
     } else {
         errorMessage.textContent = ''; // Clear error on normal reset
     }
-    // Don't clear inputs, user might want to rejoin
     boardScreen.classList.remove('active');
     gameOverScreen.classList.remove('active');
     joinScreen.classList.add('active');
@@ -192,7 +189,6 @@ function showJoinScreen(message) {
     joinButton.textContent = 'PLAY';
 }
 
-// --- NEW: Function to show the game over screen ---
 function showGameOverScreen() {
     boardScreen.classList.remove('active');
     joinScreen.classList.remove('active');
@@ -238,7 +234,8 @@ buzzerButton.addEventListener('click', () => {
 });
 
 // --- Image Resizing Helper ---
-function resizeImage(base64Str, maxWidth = 128, maxHeight = 128, callback) {
+// --- MODIFIED: Default max dimensions are now 256x256 ---
+function resizeImage(base64Str, maxWidth = 256, maxHeight = 256, callback) {
     if (!base64Str || base64Str === pfpPreview.src && pfpPreview.style.display === 'none') {
         callback(null); 
         return;
@@ -258,7 +255,8 @@ function resizeImage(base64Str, maxWidth = 128, maxHeight = 128, callback) {
         canvas.height = height;
         let ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
-        callback(canvas.toDataURL('image/jpeg', 0.7)); 
+        // --- MODIFIED: Increased JPEG quality from 0.7 to 0.85 ---
+        callback(canvas.toDataURL('image/jpeg', 0.85)); 
     };
     img.onerror = () => {
         console.error("Error loading image for resize. Sending null for picture.");
